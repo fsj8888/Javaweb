@@ -32,3 +32,38 @@ public class App {
         }
     }
 }
+<c3p0-config>
+<default-config>
+<!--  1. 驱动类（MySQL 8.x 必须用这个）  -->
+<property name="driverClass">com.mysql.cj.jdbc.Driver</property>
+<!--  2. 改这里：换成你的数据库名  -->
+<property name="jdbcUrl">jdbc:mysql://localhost:3306/你的数据库名?useSSL=false&serverTimezone=UTC</property>
+<!--  3. 改这里：换成你的数据库账号密码  -->
+<property name="user">root</property>
+<property name="password">你的数据库密码</property>
+<!--  连接池配置，直接抄就行  -->
+<property name="initialPoolSize">3</property>
+<property name="maxPoolSize">10</property>
+</default-config>
+</c3p0-config>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<modelVersion>4.0.0</modelVersion>
+<groupId>com.example</groupId>
+<artifactId>c3p0-demo</artifactId>
+<version>1.0-SNAPSHOT</version>
+<dependencies>
+<!--  C3P0连接池  -->
+<dependency>
+<groupId>com.mchange</groupId>
+<artifactId>c3p0</artifactId>
+<version>0.9.5.5</version>
+</dependency>
+<!--  H2内存数据库  -->
+<dependency>
+<groupId>com.h2database</groupId>
+<artifactId>h2</artifactId>
+<version>2.2.224</version>
+<scope>runtime</scope>
+</dependency>
+</dependencies>
+</project>
