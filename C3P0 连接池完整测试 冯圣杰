@@ -1,0 +1,32 @@
+import java.util.List;
+
+public class TestC3P0 {
+    public static void main(String[] args) {
+        UserDao dao = new UserDao();
+
+        System.out.println("=== 1. 查询所有用户 ===");
+        List<User> userList = dao.findAll();
+        for (User user : userList) {
+            System.out.println(user);
+        }
+
+        System.out.println("\n=== 2. 新增用户 ===");
+        User addUser = new User();
+        addUser.setName("冯圣杰");
+        addUser.setAge(20);
+        int addRows = dao.addUser(addUser);
+        System.out.println("新增影响行数：" + addRows);
+
+        System.out.println("\n=== 3. 修改用户 ===");
+        User updateUser = new User();
+        updateUser.setId(1);
+        updateUser.setName("王子蓬");
+        updateUser.setAge(22);
+        int updateRows = dao.updateUser(updateUser);
+        System.out.println("修改影响行数：" + updateRows);
+
+        System.out.println("\n=== 4. 删除用户 ===");
+        int deleteRows = dao.deleteUser(2);
+        System.out.println("删除影响行数：" + deleteRows);
+    }
+}
