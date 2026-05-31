@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8"?> 
+<c3p0-config>
+ <default-config> 
+<!-- MySQL 8.x 驱动 -->
+ <property name="driverClass">com.mysql.cj.jdbc.Driver</property>
+ <property name="jdbcUrl">jdbc:mysql://localhost:3306/dbname?useSSL=false&amp;serverTimezone=UTC</property> 
+<property name="user">root</property> 
+<property name="password">root</property> 
+<!-- 连接池参数 --> 
+<property name="initialPoolSize">5</property>
+ <property name="minPoolSize">5</property>
+ <property name="maxPoolSize">20</property>
+ <property name="acquireIncrement">5</property>
+ </default-config> 
+</c3p0-config>
+  
+
+import com.mchange.v2.c3p0.ComboPooledDataSource;
+ import javax.sql.DataSource;
+ import java.sql.Connection;
+ import java.sql.PreparedStatement;
+ import java.sql.ResultSet;
+ import java.sql.SQLException;
+ public class JdbcUtils {
+ private static DataSource dataSource;
+ static {
+ // 自动读取 c3p0-config.xml 
+dataSource = new ComboPooledDataSource()；
+ } 
+// 获取连接
+public static Connection getConnection() throws SQLException {
+ return dataSource.getConnection();
+ } 
+// 关闭资源（更新用：无ResultSet）
+ public static void close(Connection conn, PreparedStatement pstmt) {
+ try { if (pstmt != null) pstmt.close(); } catch (SQLException e) { e.printStackTrace(); } 
+try { if (conn != null) conn.close(); } catch (SQLException e) { e.printStackTrace(); } 
+} 
+// 关闭资源（查询用）
+ public static void close(ResultSet rs, PreparedStatement pstmt, Connection conn) {
+ try { if (rs != null) rs.close(); } catch (SQLException e) { e.printStackTrace(); }
+ close(conn, pstmt);
+ } 
+}
+
+
+import java.sql.Connection;
+ import java.sql.PreparedStatement;
+ import java.sql.SQLException;
+ public class UserDao {
+ // 更新用户 
+public int updateUser(String username, String password, int id) { 
+Connection conn = null;
+ PreparedStatement pstmt = null;
+ int rows = 0;
+ try { 
+conn = JdbcUtils.getConnection();
+ String sql = "UPDATE user SET username=?, password=? WHERE id=?";
+ pstmt = conn.prepareStatement(sql);
+ pstmt.setString(1, username);
+ pstmt.setString(2, password);
+ pstmt.setInt(3, id);
+ rows = pstmt.executeUpdate(); // 执行更新，返回影响行数 } 
+catch (SQLException e) { 
+e.printStackTrace();
+ } finally { 
+JdbcUtils.close(conn, pstmt); // 归还连接到池
+ }
+ return rows;
+ } 
+}
+
+
+import javax.servlet.ServletException;
+ import javax.servlet.annotation.WebServlet;
+ import javax.servlet.http.HttpServlet;
+ import javax.servlet.http.HttpServletRequest;
+ import javax.servlet.http.HttpServletResponse;
+ import java.io.IOException;
+ @WebServlet("/updateUser") 
+public class UpdateServlet extends HttpServlet { 
+private UserDao userDao = new UserDao();
+ protected void doPost(HttpServletRequest request, HttpServletResponse response)
+ throws ServletException, IOException {
+ request.setCharacterEncoding("utf-8"); 
+String username = request.getParameter("username");
+ String password = request.getParameter("password");
+ int id = Integer.parseInt(request.getParameter("id"));
+int rows = userDao.updateUser(username, password, id);
+ if (rows > 0) { 
+response.getWriter().write("更新成功");
+ } else { 
+response.getWriter().write("更新失败");
+ }
+ } protected void doGet(HttpServletRequest request, HttpServletResponse response)
+ throws ServletException, IOException { 
+doPost(request, response);
+ }
+ }
+
+
+// 1. 数据源（C3P0）
+ ComboPooledDataSource ds = new ComboPooledDataSource();
+ // 2. 获取连接
+ Connection conn = ds.getConnection();
+ // 3. 更新 SQL
+ String sql = "UPDATE 表 SET 字段=? WHERE id=?";
+ PreparedStatement pstmt = conn.prepareStatement(sql);
+ pstmt.setXxx(参数);
+ int rows = pstmt.executeUpdate(); 
+// 4. 关闭（归还连接）
+pstmt.close();
+ conn.close();
