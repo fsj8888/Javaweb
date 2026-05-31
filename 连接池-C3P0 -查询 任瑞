@@ -1,0 +1,109 @@
+<c3p0-config>
+<default-config>
+<property name="driverClass">com.mysql.cj.jdbc.Driver</property>
+<property name="jdbcUrl">jdbc:mysql://localhost:3306/test?useSSL=false&serverTimezone=UTC</property>
+<property name="user">root</property>
+<property name="password">123456</property>
+<property name="initialPoolSize">5</property>
+<property name="maxPoolSize">10</property>
+</default-config>
+</c3p0-config>
+package com.example;
+
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+
+public class C3P0Test {
+    public static void main(String[] args) {
+        Connection conn = null;
+        PreparedStatement pstmt = null;
+        ResultSet rs = null;
+
+        try {
+            // 1. 获取连接
+            conn = C3P0Utils.getConnection();
+            System.out.println("✅ 数据库连接获取成功！");
+
+            // 2. 编写SQL语句（示例查询语句，可根据你的表修改）
+            String sql = "SELECT * FROM user LIMIT 5";
+            pstmt = conn.prepareStatement(sql);
+
+            // 3. 执行查询
+            rs = pstmt.executeQuery();
+
+            // 4. 处理结果集
+            System.out.println("查询结果：");
+            while (rs.next()) {
+                System.out.println("ID: " + rs.getInt("id") + 
+                                   ", 用户名: " + rs.getString("username") + 
+                                   ", 年龄: " + rs.getInt("age"));
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+            System.out.println("❌ 数据库操作失败！");
+        } finally {
+            // 5. 关闭资源
+            C3P0Utils.close(conn, pstmt, rs);
+            System.out.println("✅ 资源已关闭！");
+        }
+    }
+}
+package com.example;
+
+import com.mchange.v2.c3p0.ComboPooledDataSource;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+
+public class C3P0Utils {
+    // 创建C3P0连接池对象（使用默认配置）
+    private static ComboPooledDataSource dataSource = new ComboPooledDataSource();
+
+    /**
+     * 获取数据库连接
+     * @return Connection 数据库连接对象
+     * @throws SQLException 获取连接失败时抛出异常
+     */
+    public static Connection getConnection() throws SQLException {
+        return dataSource.getConnection();
+    }
+
+    /**
+     * 关闭资源（适用于查询操作）
+     * @param conn 连接对象
+     * @param pstmt 预处理语句对象
+     * @param rs 结果集对象
+     */
+    public static void close(Connection conn, PreparedStatement pstmt, ResultSet rs) {
+        try {
+            if (rs != null) {
+                rs.close();
+            }
+            if (pstmt != null) {
+                pstmt.close();
+            }
+            if (conn != null) {
+                conn.close();
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+    public static void close(Connection conn, PreparedStatement pstmt) {
+        close(conn, pstmt, null);
+    }
+}
+{
+  "java.project.sourcePaths": [
+    "src",
+    "lib"
+],
+  "java.project.outputPath": "bin",
+  "java.project.referencedLibraries": [
+    "lib/**/*.jar"
+  ]
+}
